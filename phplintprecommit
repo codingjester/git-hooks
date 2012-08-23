@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+git diff --cached --name-status | awk '{print $2}' | grep -e \.php$ | xargs -n1 php -l
+exit $?
