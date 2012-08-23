@@ -39,25 +39,27 @@ if len(credentials) < 3:
 username, password, url = [x.split("=")[-1] for x in credentials]
 
 line = subprocess.Popen(['git', 'log', '-1', 'HEAD', '--pretty=%B'], stdout=subprocess.PIPE).communicate()[0].rstrip("\n")
-print line
 ticket_regex = re.compile("[closes|fixes|finishes|completes]+ #[[A-Z]+-[0-9]+]*")
-ticket = re.findall(ticket_regex, line)[0].split("#")[-1]
-print ticket
+ticket = re.findall(ticket_regex, line)
 
-headers = {"Authorization": "Basic %s" % base64.encodestring('%s:%s' % (username, password)).replace("\n",""), "Content-Type" : "application/json"}
-try:
-    #Add the comment
-    data = { "body" : line}
-    request = urllib2.Request("https://%s/rest/api/latest/issue/%s/comment" % url, ticket, json.dumps(data), headers)
-    result = urllib2.urlopen(request)
-    result.close()
+if ticket:
+    ticket = ticket[0].split("#")[-1]
+    print ticket
 
-    data = {"transition": { "id" : 5 } }
-    request = urllib2.Request("https://%s/rest/api/latest/issue/%s/transitions" % url, ticket, json.dumps(data), headers)
-    result = urllib2.urlopen(request)
-    result.close()
+    headers = {"Authorization": "Basic %s" % base64.encodestring('%s:%s' % (username, password)).replace("\n",""), "Content-Type" : "application/json"}
+    try:
+        #Add the comment
+        data = { "body" : line}
+        request = urllib2.Request("https://%s/rest/api/latest/issue/%s/comment" % (url, ticket), json.dumps(data), headers)
+        result = urllib2.urlopen(request)
+        result.close()
 
-except urllib2.HTTPError as e:
-    print "Bad request :("
-    print e.read()
-    e.close()
+        data = {"transition": { "id" : 5 } }
+        request = urllib2.Request("https://%s/rest/api/latest/issue/%s/transitions" % (url, ticket), json.dumps(data), headers)
+        result = urllib2.urlopen(request)
+        result.close()
+
+    except urllib2.HTTPError as e:
+        print "Bad request :("
+        print e.read()
+        e.close()
