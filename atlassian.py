@@ -22,6 +22,7 @@ and parse it. It should be as follows:
 [jira]
     username = sexlexia
     password = kifgetmypants1
+    url      = blahasde.com
 
 From there you can rock and roll, never having to see Jira again!
 """
@@ -31,11 +32,11 @@ config = subprocess.Popen(['git', 'config', '--list'], stdout=subprocess.PIPE).c
 jira_creds = re.compile("jira.*=*")
 credentials = re.findall(jira_creds, config)
 
-if len(credentials) < 2:
+if len(credentials) < 3:
     print "You don't have your jira credentials set in your config"
     exit(0)
 
-username, password = [x.split("=")[-1] for x in credentials]
+username, password, url = [x.split("=")[-1] for x in credentials]
 
 line = subprocess.Popen(['git', 'log', '-1', 'HEAD', '--pretty=%B'], stdout=subprocess.PIPE).communicate()[0].rstrip("\n")
 print line
@@ -47,12 +48,12 @@ headers = {"Authorization": "Basic %s" % base64.encodestring('%s:%s' % (username
 try:
     #Add the comment
     data = { "body" : line}
-    request = urllib2.Request("https://your_url/rest/api/latest/issue/%s/comment" % ticket, json.dumps(data), headers)
+    request = urllib2.Request("https://%s/rest/api/latest/issue/%s/comment" % url, ticket, json.dumps(data), headers)
     result = urllib2.urlopen(request)
     result.close()
 
     data = {"transition": { "id" : 5 } }
-    request = urllib2.Request("https://your_url/rest/api/latest/issue/%s/transitions" % ticket, json.dumps(data), headers)
+    request = urllib2.Request("https://%s/rest/api/latest/issue/%s/transitions" % url, ticket, json.dumps(data), headers)
     result = urllib2.urlopen(request)
     result.close()
 
